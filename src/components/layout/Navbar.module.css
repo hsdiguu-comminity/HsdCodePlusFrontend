@@ -1,0 +1,46 @@
+/* Navbar: position sticky ile sayfa kayarken üstte sabit kalır */
+.header {
+  position: sticky; top: 0; z-index: 1000;
+  background: var(--color-nav); backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--color-border);
+}
+.inner {
+  min-height: 72px; display: flex; align-items: center; justify-content: space-between;
+  gap: var(--space-4); flex-wrap: wrap;
+}
+.logo { font-size: 1.6rem; font-weight: 800; letter-spacing: -1px; white-space: nowrap; }
+
+/* mobilde menü kapalı, butonla açılır */
+.links { display: none; width: 100%; order: 4; flex-direction: column; padding-bottom: var(--space-2); }
+.links.open { display: flex; }
+.links a {
+  display: block; padding: var(--space-3) var(--space-1);
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-muted); font-weight: 500; font-size: 0.95rem;
+  transition: color 0.25s ease;
+}
+.links a:hover, .links a.active { color: var(--color-secondary); }
+
+.actions { display: flex; align-items: center; gap: var(--space-2); margin-left: auto; }
+.hideSm { display: none; }
+
+.iconBtn {
+  width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid var(--color-border); border-radius: var(--radius-sm);
+  background: var(--color-surface); cursor: pointer;
+  transition: transform 0.25s ease;
+}
+.iconBtn:hover { transform: scale(1.08); }
+.menuBtn { order: 3; }
+
+/* tablet ve üstü: menü yatay görünür */
+@media (min-width: 768px) {
+  .menuBtn { display: none; }
+  .links {
+    display: flex; flex-direction: row; width: auto; order: 0; padding: 0;
+    gap: var(--space-6); margin: 0 auto;
+  }
+  .links a { border: 0; padding: 0; font-size: 0.88rem; }
+  .actions { margin-left: 0; }
+  .hideSm { display: inline-flex; }
+}

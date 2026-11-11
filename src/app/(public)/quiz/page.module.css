@@ -1,0 +1,8 @@
+/* Quiz listesi */
+.page { padding: var(--space-12) 0 64px; }
+.head { max-width: 680px; margin: 0 auto var(--space-12); text-align: center; }
+.head h1 { margin-bottom: var(--space-3); font-size: clamp(2rem, 5vw, 3rem); line-height: 1.15; letter-spacing: -1.5px; }
+.head p { color: var(--color-muted); }
+.grid { display: grid; grid-template-columns: 1fr; gap: var(--space-6); }
+@media (min-width: 768px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1024px) { .grid { grid-template-columns: repeat(3, 1fr); } }

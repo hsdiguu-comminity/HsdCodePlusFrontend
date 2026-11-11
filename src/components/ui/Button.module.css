@@ -1,0 +1,11 @@
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2);
+  padding: 12px 18px; border-radius: var(--radius-sm);
+  font-weight: 600; font-size: 0.88rem; border: 1px solid transparent; cursor: pointer;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+.btn:hover { transform: translateY(-2px); }
+.primary { color: #fff; background: var(--gradient-button); box-shadow: 0 8px 25px rgba(99, 102, 241, 0.22); }
+.primary:hover { box-shadow: 0 12px 30px rgba(99, 102, 241, 0.4); }
+.outline { color: var(--color-text); background: transparent; border-color: var(--color-border); }
+.outline:hover { border-color: var(--color-secondary); }

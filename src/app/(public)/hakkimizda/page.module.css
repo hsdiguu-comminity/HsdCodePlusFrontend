@@ -1,0 +1,88 @@
+/* Hakkımızda sayfası: renkler ortak tema değişkenlerinden gelir (globals.css) */
+
+/* ---------- Giriş (hero) ---------- */
+.hero { padding: 72px 0 48px; text-align: center; }
+.hero h1 {
+  max-width: 900px; margin: 24px auto 20px;
+  font-size: clamp(2.2rem, 6.5vw, 4.2rem); line-height: 1.1; letter-spacing: -2px; font-weight: 800;
+}
+.lead { max-width: 760px; margin: 0 auto; color: var(--color-muted); line-height: 1.9; }
+.buttons { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-3); margin-top: var(--space-8); }
+.chips { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-3); margin-top: var(--space-12); }
+.chips li {
+  padding: var(--space-2) var(--space-4); font-size: 0.85rem; color: var(--color-muted);
+  background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 12px;
+}
+
+/* ---------- Bölümler ---------- */
+.section { padding: 56px 0; }
+.head { max-width: 720px; margin-bottom: var(--space-8); }
+.label { color: var(--color-accent-text); font-size: 0.75rem; font-weight: 800; letter-spacing: 2px; }
+.head h2, .join h2 { margin-top: 9px; font-size: clamp(1.7rem, 4vw, 2.6rem); line-height: 1.2; letter-spacing: -1px; }
+.head p { margin-top: var(--space-3); color: var(--color-muted); font-size: 0.95rem; }
+
+/* ---------- Kart ızgarası (mobil 1, tablet+ 2 sütun) ---------- */
+.grid { display: grid; grid-template-columns: 1fr; gap: 18px; }
+
+.card {
+  position: relative; overflow: hidden; height: 100%; padding: 27px; min-height: 200px;
+  background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 22px;
+  transition: transform 0.25s ease, border-color 0.25s ease;
+}
+.card:hover { transform: translateY(-4px); border-color: var(--accent); }
+/* köşedeki renkli ışıma */
+.card::after {
+  content: ""; position: absolute; right: -55px; bottom: -70px; width: 130px; height: 130px;
+  border-radius: 50%; background: var(--glow); filter: blur(35px); opacity: 0.2; pointer-events: none;
+}
+/* kart renk vurguları: data-accent özelliğine göre */
+.card[data-accent="purple"] { --accent: #a58aff; --glow: #8d68ff; }
+.card[data-accent="cyan"]   { --accent: #51d8f5; --glow: #21c6e9; }
+.card[data-accent="orange"] { --accent: #ffad72; --glow: #ff8744; }
+.card[data-accent="green"]  { --accent: #6ee7b7; --glow: #22c98a; }
+.card[data-accent="pink"]   { --accent: #ff8ecb; --glow: #ed4ca4; }
+.card[data-accent="blue"]   { --accent: #80a9ff; --glow: #477aff; }
+
+.icon { width: 48px; height: 48px; display: grid; place-items: center; margin-bottom: 20px; border-radius: 15px; background: var(--glow); color: #fff; }
+.tag { display: block; margin-bottom: var(--space-2); color: var(--color-muted); font-size: 0.7rem; font-weight: 800; letter-spacing: 1.4px; }
+.card h3 { margin-bottom: var(--space-2); font-size: 1.1rem; letter-spacing: -0.3px; }
+.card p { color: var(--color-muted); font-size: 0.9rem; line-height: 1.8; }
+.cardLink { display: inline-block; margin-top: var(--space-4); color: var(--color-secondary); font-weight: 600; font-size: 0.88rem; }
+.cardLink:hover { text-decoration: underline; }
+
+/* ---------- İGÜ HSD Gelişim büyük kutusu ---------- */
+.igu {
+  padding: 32px 20px; border: 1px solid var(--color-border); border-radius: 28px;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), transparent 50%), var(--color-surface);
+}
+.iguTop { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-6); margin-bottom: var(--space-8); }
+.iguTop .head { margin-bottom: 0; }
+.iguGrid { display: grid; grid-template-columns: 1fr; gap: 15px; }
+.iguCard {
+  padding: 22px; background: var(--color-bg-alt); border: 1px solid var(--color-border); border-radius: 18px;
+  transition: border-color 0.25s ease;
+}
+.iguCard:hover { border-color: var(--color-primary); }
+.miniLabel { display: block; margin-bottom: 9px; color: var(--color-accent-text); font-size: 0.68rem; font-weight: 800; letter-spacing: 1.5px; }
+.iguCard h3 { margin-bottom: 7px; font-size: 1rem; }
+.iguCard p { color: var(--color-muted); font-size: 0.88rem; }
+.disclaimer {
+  margin-top: 22px; padding: 14px 17px; color: var(--color-muted); font-size: 0.8rem;
+  background: var(--color-bg-alt); border-left: 3px solid var(--color-primary); border-radius: 0 10px 10px 0;
+}
+
+/* ---------- Katılım çağrısı ---------- */
+.join {
+  padding: 45px 24px; text-align: center; border: 1px solid var(--color-border); border-radius: 25px;
+  background: radial-gradient(ellipse at top, rgba(99, 102, 241, 0.18), transparent 65%), var(--color-surface);
+}
+.join p { max-width: 620px; margin: var(--space-3) auto var(--space-6); color: var(--color-muted); font-size: 0.95rem; }
+
+/* ---------- Tablet ve üstü ---------- */
+@media (min-width: 768px) {
+  .hero { padding: 100px 0 64px; }
+  .section { padding: 70px 0; }
+  .grid, .iguGrid { grid-template-columns: repeat(2, 1fr); }
+  .igu { padding: 56px 36px; }
+  .iguTop { flex-direction: row; justify-content: space-between; align-items: flex-start; }
+}

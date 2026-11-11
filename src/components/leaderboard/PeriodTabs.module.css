@@ -1,0 +1,7 @@
+/* Sekme grubu */
+.tabs { display: inline-flex; gap: 4px; padding: 4px; margin-bottom: var(--space-6); background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 12px; }
+.tab { padding: 8px 18px; font-weight: 600; font-size: 0.9rem; cursor: pointer; background: transparent; border: 0; border-radius: 9px; color: var(--color-muted); }
+.tab:hover { color: var(--color-text); }
+/* Seçili sekme marka renginde */
+.active { color: #fff; background: var(--gradient-button); }
+.active:hover { color: #fff; }
