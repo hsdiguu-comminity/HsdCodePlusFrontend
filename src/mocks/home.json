@@ -1,0 +1,19 @@
+{
+  "posts": [
+    { "id": "1", "slug": "ai-ile-kod-yazmaya-giris", "title": "Yapay zeka ile kod yazmaya giriş", "excerpt": "Kod asistanlarını günlük akışına nasıl dahil edeceğini ve nerede hata yapabileceklerini anlatıyoruz.", "category": "Yapay Zeka", "author": { "name": "Aleyna", "username": "aleyna" }, "readMinutes": 6, "date": "2026-10-28" },
+    { "id": "2", "slug": "web-guvenligi-temelleri", "title": "Web güvenliği temelleri: XSS ve CSRF", "excerpt": "İki yaygın saldırıyı örneklerle gör, kendi projende hangi önlemleri alacağını öğren.", "category": "Siber Güvenlik", "author": { "name": "Ümmügülsüm", "username": "ummugulsum" }, "readMinutes": 8, "date": "2026-10-25" },
+    { "id": "3", "slug": "pandas-ile-veri-temizleme", "title": "Pandas ile veri temizleme", "excerpt": "Eksik verileri bulmak, tipleri düzeltmek ve tekrar eden satırları temizlemek için adım adım rehber.", "category": "Veri Bilimi", "author": { "name": "Ece Yılmaz", "username": "eceyilmaz" }, "readMinutes": 5, "date": "2026-10-20" }
+  ],
+  "quizzes": [
+    { "id": "hsd", "title": "HSD'yi Ne Kadar Tanıyorsun?", "category": "HSD", "questionCount": 10, "durationMin": 8, "points": 100 },
+    { "id": "ai", "title": "Yapay Zekâ Testi", "category": "Yapay Zeka", "questionCount": 10, "durationMin": 10, "points": 100 },
+    { "id": "js", "title": "JavaScript Yazım Kuralları", "category": "Web", "questionCount": 10, "durationMin": 10, "points": 100 }
+  ],
+  "weeklyTop": [
+    { "rank": 1, "name": "Zeynep Kaya", "username": "zeynepkaya", "community": "İstanbul Gelişim Üniversitesi HSD", "points": 940 },
+    { "rank": 2, "name": "Mert Demir", "username": "mertdemir", "community": "Boğaziçi HSD", "points": 880 },
+    { "rank": 3, "name": "Elif Arslan", "username": "elifarslan", "community": "ODTÜ HSD", "points": 815 },
+    { "rank": 4, "name": "Can Öztürk", "username": "canozturk", "community": "İTÜ HSD", "points": 770 },
+    { "rank": 5, "name": "Selin Aydın", "username": "selinaydin", "community": "Ege HSD", "points": 725 }
+  ]
+}

@@ -1,0 +1,9 @@
+/* Blog detay (yer tutucu) */
+.page { padding: var(--space-12) 0 64px; }
+.article { max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-3); }
+.back { color: var(--color-muted); font-size: 0.85rem; }
+.back:hover { color: var(--color-secondary); }
+.article h1 { font-size: clamp(1.8rem, 5vw, 2.8rem); line-height: 1.2; letter-spacing: -1px; }
+.meta { color: var(--color-muted); font-size: 0.9rem; }
+.lead { font-size: 1.1rem; line-height: 1.8; }
+.placeholder { padding: var(--space-4); width: 100%; color: var(--color-muted); font-size: 0.9rem; background: var(--color-surface); border: 1px dashed var(--color-border); border-radius: var(--radius-md); }

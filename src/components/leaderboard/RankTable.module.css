@@ -1,0 +1,12 @@
+.wrap { overflow-x: auto; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md); }
+.table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+.table th, .table td { padding: var(--space-3) var(--space-4); text-align: left; border-bottom: 1px solid var(--color-border); }
+.table th { color: var(--color-muted); font-weight: 600; font-size: 0.82rem; }
+.table tbody tr:last-child td { border-bottom: 0; }
+.table td a { font-weight: 600; }
+.table td a:hover { color: var(--color-secondary); }
+.rank { width: 64px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.first .rank { color: var(--color-secondary); }
+.table .points { text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; }
+.table .community { display: none; color: var(--color-muted); }
+@media (min-width: 480px) { .table .community { display: table-cell; } }

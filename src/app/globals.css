@@ -1,0 +1,110 @@
+/* ============================================================
+   Ortak tema (TÜM SAYFALAR BUNU KULLANIR)
+   Açık ve koyu modda AYNI renk kimliği: indigo + cyan.
+   Yalnızca zemin ve yazı renkleri değişir.
+   Renk değiştirmek için sadece bu dosyadaki değişkenleri düzenle.
+   ============================================================ */
+:root {
+  color-scheme: dark;
+
+  /* marka renkleri: iki temada da aynı */
+  --color-primary: #6366f1;
+  --color-primary-strong: #4f46e5;
+  --color-secondary: #06b6d4;
+  --gradient-brand: linear-gradient(90deg, #818cf8, #22d3ee);
+  --gradient-button: linear-gradient(135deg, #6366f1, #4f46e5);
+
+  /* koyu tema (varsayılan) */
+  --color-bg: #080b14;
+  --color-bg-alt: #0d1220;
+  --color-surface: #111827;
+  --color-text: #f8fafc;
+  --color-muted: #94a3b8;
+  --color-border: rgba(255, 255, 255, 0.12);
+  --color-nav: rgba(8, 11, 20, 0.9);
+  --color-footer: #060810;
+
+  /* hata / başarı / vurgu yazı renkleri */
+  --color-error: #f87171;
+  --color-success: #34d399;
+  --color-accent-text: #a5b4fc;
+
+  /* boşluk ölçeği (4px taban) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 24px;
+
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+}
+
+/* açık tema: sadece zemin/yazı değişir, marka renkleri aynı kalır */
+[data-theme="light"] {
+  color-scheme: light;
+  --color-bg: #f4f7fc;
+  --color-bg-alt: #e9eef7;
+  --color-surface: #ffffff;
+  --color-text: #172033;
+  --color-muted: #475569;
+  --color-border: rgba(30, 41, 59, 0.15);
+  --color-nav: rgba(255, 255, 255, 0.93);
+  --color-footer: #e2e8f0;
+  --color-error: #b3261e;
+  --color-success: #047857;
+  --color-accent-text: #4f46e5;
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scroll-behavior: smooth; scroll-padding-top: 90px; }
+
+body {
+  font-family: var(--font-sans);
+  background: var(--color-bg);
+  color: var(--color-text);
+  line-height: 1.6;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; }
+ul, ol { list-style: none; }
+
+/* klavye ile gezinirken görünen odak çizgisi (erişilebilirlik) */
+:focus-visible {
+  outline: 2px solid var(--color-secondary);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.container { width: min(1120px, 90%); margin: 0 auto; }
+
+.gradient-text {
+  background: var(--gradient-brand);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* sadece ekran okuyucuların gördüğü metin */
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+}
+
+/* hareket azaltma tercihi */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}

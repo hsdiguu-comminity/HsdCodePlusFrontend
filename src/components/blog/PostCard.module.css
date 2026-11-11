@@ -1,0 +1,6 @@
+.title { font-size: 1.1rem; line-height: 1.35; }
+.link::after { content: ""; position: absolute; inset: 0; } /* kartın tamamı tıklanabilir */
+.excerpt { color: var(--color-muted); font-size: 0.92rem; line-height: 1.7; flex: 1; }
+.meta { display: flex; flex-direction: column; gap: var(--space-1); font-size: 0.82rem; color: var(--color-muted); }
+.meta span:first-child { color: var(--color-text); font-weight: 600; }
+.read { display: inline-flex; align-items: center; gap: 6px; }

@@ -1,32 +1,6 @@
-# Bağımlılıklar
-node_modules/
-.pnp*
-
-# Next.js / build
-.next/
-out/
-build/
+node_modules
+.next
+out
+.env*.local
 *.tsbuildinfo
 next-env.d.ts
-
-# Ortam değişkenleri (.env.example hariç)
-.env
-.env*.local
-!.env.example
-
-# Loglar
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Test çıktıları
-coverage/
-playwright-report/
-test-results/
-
-# Editör / işletim sistemi
-.DS_Store
-Thumbs.db
-.vscode/*
-!.vscode/extensions.json
-.idea/

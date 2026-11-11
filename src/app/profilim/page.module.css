@@ -1,0 +1,54 @@
+/* Profilim sayfası (mevcut tema değişkenlerini kullanır; renk eklenmedi) */
+.page { padding: var(--space-12) 0 64px; }
+.muted { color: var(--color-muted); font-size: 0.9rem; }
+
+/* Üst kart: avatar + isim */
+.head { display: flex; align-items: center; gap: var(--space-4); margin-bottom: var(--space-8); }
+.head h1 { font-size: clamp(1.5rem, 4vw, 2rem); letter-spacing: -0.5px; }
+.avatar {
+  flex: none; width: 64px; height: 64px; display: flex; align-items: center; justify-content: center;
+  font-size: 1.6rem; font-weight: 800; color: #fff; background: var(--gradient-button); border-radius: 50%;
+}
+.badge {
+  display: inline-block; margin-top: var(--space-2); padding: 3px 12px; font-size: 0.8rem; font-weight: 600;
+  color: var(--color-accent-text); border: 1px solid var(--color-border); border-radius: 999px;
+}
+
+/* İki form yan yana (geniş ekranda), alt alta (mobilde) */
+.grid { display: grid; grid-template-columns: 1fr; gap: var(--space-6); margin-bottom: var(--space-6); }
+.card { padding: var(--space-6); background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); }
+.card h2 { margin-bottom: var(--space-3); font-size: 1.2rem; }
+.card form { margin-top: var(--space-4); display: flex; flex-direction: column; }
+.wide { margin-bottom: 0; }
+
+.save {
+  width: 100%; padding: 12px; margin-top: var(--space-2); font-weight: 600; font-size: 1rem; color: #fff; cursor: pointer;
+  background: var(--gradient-button); border: 0; border-radius: var(--radius-sm);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.save:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(99, 102, 241, 0.4); }
+.save:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+.success { margin-bottom: var(--space-3); padding: var(--space-3); font-size: 0.9rem; color: var(--color-success); border: 1px solid var(--color-success); border-radius: var(--radius-sm); }
+.error { margin-bottom: var(--space-3); font-size: 0.9rem; color: var(--color-error); }
+
+/* Çözülen quizler listesi */
+.listHead { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3); margin-bottom: var(--space-3); }
+.listHead h2 { margin-bottom: 0; }
+.sort { font-size: 0.88rem; color: var(--color-muted); }
+.sort select {
+  padding: 6px 10px; font: inherit; color: var(--color-text); background: var(--color-bg);
+  border: 1px solid var(--color-border); border-radius: var(--radius-sm);
+}
+.quizList li {
+  display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--space-1) var(--space-4);
+  padding: var(--space-3) 0; border-bottom: 1px solid var(--color-border); font-size: 0.92rem;
+}
+.quizList li:last-child { border-bottom: 0; }
+.quizTitle { font-weight: 600; }
+.quizTitle:hover { color: var(--color-secondary); }
+.empty { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-3); color: var(--color-muted); }
+
+@media (min-width: 900px) {
+  .grid { grid-template-columns: 1fr 1fr; align-items: start; }
+}
