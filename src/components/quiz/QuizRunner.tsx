@@ -1,140 +1,175 @@
 "use client";
 // ---- Quiz çözme akışı: giriş kontrolü -> başlangıç -> sorular -> sonuç ----
-import { useRef, useState } from "react";
+// Sorular "başlat" ile sunucudan alınır, puan sunucuda hesaplanır.
+// Her quiz bir kez çözülür; çözülmüş quizde doğrudan sonuç gösterilir.
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, Clock, HelpCircle, Trophy } from "lucide-react";
 import RequireAuth from "@/components/auth/RequireAuth";
-import { POINTS_PER_QUESTION, saveResult } from "@/lib/results";
-import type { QuizDetail, QuizResult, Session } from "@/types";
+import { api, ApiError, errorMessage } from "@/lib/api";
+import { minutesOf } from "@/lib/format";
+import type { QuizDetail, QuizResult, QuizSummary, StartedQuiz } from "@/types";
 import ResultScreen from "./ResultScreen";
 import Timer from "./Timer";
 import styles from "./QuizRunner.module.css";
 
-type Phase = "intro" | "running" | "done"; // başlangıç | çözülüyor | bitti
+type Phase =
+  | { name: "loading" }
+  | { name: "intro"; inProgress: boolean }
+  | { name: "running"; started: StartedQuiz }
+  | { name: "done"; result: QuizResult; note?: string };
 
-// Dışarıya açılan bileşen: önce giriş şartını kontrol eder (üye olmayan quiz çözemez)
-export default function QuizRunner({ quiz }: { quiz: QuizDetail }) {
+export default function QuizRunner({ quiz }: { quiz: QuizSummary }) {
   return (
     <RequireAuth message="Quiz çözmek için üye olup giriş yapmalısın.">
-      {(session) => <QuizSession quiz={quiz} session={session} />}
+      {() => <QuizSession quiz={quiz} />}
     </RequireAuth>
   );
 }
 
-// Giriş yapmış kullanıcı için quiz oturumu
-function QuizSession({ quiz, session }: { quiz: QuizDetail; session: Session }) {
-  const total = quiz.questions.length;
+function QuizSession({ quiz }: { quiz: QuizSummary }) {
+  const [phase, setPhase] = useState<Phase>({ name: "loading" });
+  const [current, setCurrent] = useState(0);
+  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [warning, setWarning] = useState("");
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+  const submitted = useRef(false); // cevapların iki kez gönderilmesini engeller
 
-  const [phase, setPhase] = useState<Phase>("intro");
-  const [current, setCurrent] = useState(0); // şu anki soru sırası
-  const [answers, setAnswers] = useState<(number | null)[]>(() => Array(total).fill(null));
-  const [warning, setWarning] = useState(""); // "cevap seçmelisin" uyarısı
-  const [result, setResult] = useState<QuizResult | null>(null);
-  const finished = useRef(false); // sonucun iki kez kaydedilmesini engeller
+  const showResult = useCallback(async (note?: string) => {
+    const result = await api<QuizResult>(`/quizzes/${quiz.id}/result`);
+    setPhase({ name: "done", result, note });
+  }, [quiz.id]);
 
-  // Bir şık seçildiğinde cevabı kaydet
-  function selectAnswer(optionIndex: number) {
-    setAnswers((prev) => prev.map((a, i) => (i === current ? optionIndex : a)));
-    setWarning("");
-  }
+  // Kullanıcının bu quizdeki durumunu öğren (çözmüş mü, yarıda mı bırakmış?)
+  useEffect(() => {
+    api<{ quiz: QuizDetail }>(`/quizzes/${quiz.id}`)
+      .then(({ quiz: detail }) => {
+        if (detail.myAttempt?.finishedAt) return showResult("Bu quizi daha önce çözdün. Sonucun aşağıda.");
+        setPhase({ name: "intro", inProgress: detail.myAttempt !== null });
+      })
+      .catch((err) => {
+        setError(errorMessage(err));
+        setPhase({ name: "intro", inProgress: false });
+      });
+  }, [quiz.id, showResult]);
 
-  // Quizi bitir: puanı hesapla, sonucu kaydet (sıralamaya yansır)
-  function finish() {
-    if (finished.current) return;
-    finished.current = true;
-
-    const correct = quiz.questions.filter((question, i) => answers[i] === question.correctIndex).length;
-    const saved = saveResult({
-      quizId: quiz.id,
-      quizTitle: quiz.title,
-      username: session.username,
-      name: session.name,
-      community: session.community,
-      correct,
-      total,
-      points: correct * POINTS_PER_QUESTION,
-    });
-    setResult(saved);
-    setPhase("done");
-  }
-
-  // "Sonraki soru" / "Testi bitir"
-  function next() {
-    if (answers[current] === null) {
-      setWarning("Devam etmek için bir cevap seçmelisin.");
-      return;
-    }
-    if (current < total - 1) {
-      setCurrent((c) => c + 1);
-      setWarning("");
-    } else {
-      finish();
+  async function start() {
+    setBusy(true);
+    setError("");
+    try {
+      const started = await api<StartedQuiz>(`/quizzes/${quiz.id}/start`, { method: "POST" });
+      submitted.current = false;
+      setPhase({ name: "running", started });
+    } catch (err) {
+      if (err instanceof ApiError && (err.code === "ALREADY_ATTEMPTED" || err.code === "TIME_UP")) {
+        await showResult(err.message).catch(() => setError(err.message));
+      } else {
+        setError(errorMessage(err));
+      }
+    } finally {
+      setBusy(false);
     }
   }
 
-  // Quizi baştan başlat
-  function restart() {
-    finished.current = false;
-    setAnswers(Array(total).fill(null));
-    setCurrent(0);
-    setWarning("");
-    setResult(null);
-    setPhase("intro");
+  const finish = useCallback(async () => {
+    if (submitted.current) return;
+    submitted.current = true;
+    setBusy(true);
+    try {
+      const payload = Object.entries(answers).map(([questionId, optionId]) => ({ questionId, optionId }));
+      const result = await api<QuizResult>(`/quizzes/${quiz.id}/submit`, { method: "POST", body: { answers: payload } });
+      setPhase({ name: "done", result });
+    } catch (err) {
+      if (err instanceof ApiError && (err.code === "TIME_UP" || err.code === "ALREADY_SUBMITTED")) {
+        await showResult(err.message).catch(() => setError(err.message));
+      } else {
+        submitted.current = false; // ağ hatasında tekrar denenebilsin
+        setError(errorMessage(err));
+      }
+    } finally {
+      setBusy(false);
+    }
+  }, [answers, quiz.id, showResult]);
+
+  // ---------- Yükleniyor ----------
+  if (phase.name === "loading") {
+    return <p className={styles.note} role="status">Yükleniyor…</p>;
   }
 
-  // ---------- 3) Sonuç ve analiz ----------
-  if (phase === "done" && result) {
+  // ---------- Sonuç ----------
+  if (phase.name === "done") {
     return (
       <div className={styles.panel}>
-        <ResultScreen quiz={quiz} result={result} answers={answers} onRetry={restart} />
+        <ResultScreen result={phase.result} note={phase.note} />
       </div>
     );
   }
 
-  // ---------- 1) Başlangıç ekranı ----------
-  if (phase === "intro") {
+  // ---------- Başlangıç ekranı ----------
+  if (phase.name === "intro") {
+    const closed = !phase.inProgress && quiz.status !== "ACTIVE";
     return (
       <div className={styles.panel}>
         <Link href="/quiz" className={styles.back}>
           <ArrowLeft size={16} aria-hidden /> Tüm quizler
         </Link>
         <h1 className={styles.title}>{quiz.title}</h1>
-        <p className={styles.desc}>{quiz.description}</p>
+        {quiz.description && <p className={styles.desc}>{quiz.description}</p>}
 
         <ul className={styles.stats}>
           <li><HelpCircle size={16} aria-hidden /> {quiz.questionCount} soru</li>
-          <li><Clock size={16} aria-hidden /> {quiz.durationMin} dakika</li>
-          <li><Trophy size={16} aria-hidden /> {quiz.points} puan</li>
+          <li><Clock size={16} aria-hidden /> {minutesOf(quiz.timeLimitSec)} dakika</li>
+          <li><Trophy size={16} aria-hidden /> {quiz.totalPoints} puan</li>
         </ul>
 
         <p className={styles.note}>
-          Başlayınca süre durmaz. Süre dolarsa quiz otomatik biter ve verdiğin cevaplar değerlendirilir.
-          Sıralamada her quizin en yüksek sonucun sayılır.
+          Her quiz yalnızca <strong>bir kez</strong> çözülebilir. Başlayınca süre durmaz; sayfayı yenilesen de
+          süre işlemeye devam eder. Süre dolarsa o ana kadar verdiğin cevaplar gönderilir. Bitirince doğru
+          cevapları ve açıklamaları görebilirsin.
         </p>
 
-        <button type="button" className={styles.primary} onClick={() => setPhase("running")}>
-          Quizi başlat
-        </button>
+        {error && <p className={styles.warning} role="alert">{error}</p>}
+
+        {closed ? (
+          <p className={styles.warning}>
+            {quiz.status === "UPCOMING" ? "Bu quiz henüz başlamadı." : "Bu quizin süresi sona erdi."}
+          </p>
+        ) : (
+          <button type="button" className={styles.primary} onClick={start} disabled={busy}>
+            {busy ? "Hazırlanıyor…" : phase.inProgress ? "Kaldığın yerden devam et" : "Quizi başlat"}
+          </button>
+        )}
       </div>
     );
   }
 
-  // ---------- 2) Sorular ----------
-  const question = quiz.questions[current];
+  // ---------- Sorular ----------
+  const { started } = phase;
+  const total = started.questions.length;
+  const question = started.questions[current];
   const progress = ((current + 1) / total) * 100;
+
+  function next() {
+    if (!answers[question.id]) {
+      setWarning("Devam etmek için bir cevap seçmelisin.");
+      return;
+    }
+    setWarning("");
+    if (current < total - 1) setCurrent((c) => c + 1);
+    else void finish();
+  }
 
   return (
     <div className={styles.panel}>
-      {/* Üst bilgi: başlık, soru sayısı, sayaç */}
       <div className={styles.head}>
-        <h1 className={styles.runTitle}>{quiz.title}</h1>
+        <h1 className={styles.runTitle}>{started.quiz.title}</h1>
         <span className={styles.count}>
           {current + 1} / {total}
         </span>
-        <Timer seconds={quiz.durationMin * 60} onExpire={finish} />
+        <Timer expiresAt={started.expiresAt} onExpire={finish} />
       </div>
 
-      {/* İlerleme çubuğu */}
       <div
         className={styles.track}
         role="progressbar"
@@ -146,22 +181,24 @@ function QuizSession({ quiz, session }: { quiz: QuizDetail; session: Session }) 
         <div className={styles.bar} style={{ width: `${progress}%` }} />
       </div>
 
-      {/* Soru ve şıklar */}
       <fieldset className={styles.question}>
         <legend className={styles.questionText}>
           {current + 1}. {question.text}
         </legend>
         <div className={styles.answers}>
           {question.options.map((option, i) => (
-            <label key={option} className={styles.answer}>
+            <label key={option.id} className={styles.answer}>
               <input
                 type="radio"
-                name={`soru-${current}`}
-                checked={answers[current] === i}
-                onChange={() => selectAnswer(i)}
+                name={`soru-${question.id}`}
+                checked={answers[question.id] === option.id}
+                onChange={() => {
+                  setAnswers((prev) => ({ ...prev, [question.id]: option.id }));
+                  setWarning("");
+                }}
               />
               <span>
-                {String.fromCharCode(65 + i)}) {option}
+                {String.fromCharCode(65 + i)}) {option.text}
               </span>
             </label>
           ))}
@@ -169,10 +206,9 @@ function QuizSession({ quiz, session }: { quiz: QuizDetail; session: Session }) 
       </fieldset>
 
       <p className={styles.warning} role="alert">
-        {warning}
+        {warning || error}
       </p>
 
-      {/* Önceki / Sonraki */}
       <div className={styles.actions}>
         <button
           type="button"
@@ -182,8 +218,8 @@ function QuizSession({ quiz, session }: { quiz: QuizDetail; session: Session }) 
         >
           ← Önceki
         </button>
-        <button type="button" className={styles.primary} onClick={next}>
-          {current === total - 1 ? "Testi bitir ✓" : "Sonraki soru →"}
+        <button type="button" className={styles.primary} onClick={next} disabled={busy}>
+          {current === total - 1 ? (busy ? "Gönderiliyor…" : "Testi bitir ✓") : "Sonraki soru →"}
         </button>
       </div>
     </div>

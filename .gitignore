@@ -4,3 +4,8 @@ out
 .env*.local
 *.tsbuildinfo
 next-env.d.ts
+
+# Ortam degiskenleri (.env.example haric)
+.env
+.env*.local
+!.env.example

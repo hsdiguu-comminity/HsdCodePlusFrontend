@@ -1,56 +1,70 @@
 "use client";
 // ---- Üye profili (herkese açık özet) ----
-import { useEffect, useState } from "react";
 import Link from "next/link";
-import { getUserResults, percentOf, summarizeByQuiz } from "@/lib/results";
-import type { QuizResult } from "@/types";
+import { useApi } from "@/lib/useApi";
+import { formatDate, fullName } from "@/lib/format";
+import type { PublicProfile } from "@/types";
 import styles from "./ProfileView.module.css";
 
 export default function ProfileView({ username }: { username: string }) {
-  // null = henüz okunmadı
-  const [results, setResults] = useState<QuizResult[] | null>(null);
+  const { data, error, loading } = useApi<PublicProfile>(`/users/${encodeURIComponent(username)}`);
 
-  useEffect(() => {
-    setResults(getUserResults(username));
-  }, [username]);
+  if (loading) return <p className={styles.state} role="status">Yükleniyor…</p>;
 
-  if (results === null) return <p className={styles.state} role="status">Yükleniyor…</p>;
-
-  // Hiç sonucu yoksa kısa bilgi
-  if (results.length === 0) {
+  if (error || !data) {
     return (
       <div className={styles.box}>
         <h1>@{username}</h1>
-        <p>Bu üye henüz quiz çözmemiş ya da profil bu tarayıcıda bulunamadı.</p>
+        <p>{error ?? "Bu üye bulunamadı."}</p>
         <Link href="/siralama" className={styles.link}>Sıralamaya dön</Link>
       </div>
     );
   }
 
-  const summaries = summarizeByQuiz(results);
-  const totalPoints = summaries.reduce((sum, s) => sum + s.best.points, 0);
-  const { name, community } = results[0];
+  const { user, points, quizzesCompleted, posts } = data;
 
   return (
     <div className={styles.box}>
-      <h1>{name}</h1>
+      <h1>{fullName(user)}</h1>
       <p>
-        @{username} · {community}
+        @{user.username} · {user.community.name} · {formatDate(user.createdAt)} tarihinden beri üye
       </p>
+      {user.profile?.bio && <p>{user.profile.bio}</p>}
+      {(user.profile?.githubUrl || user.profile?.linkedinUrl) && (
+        <p>
+          {user.profile.githubUrl && (
+            <a href={user.profile.githubUrl} target="_blank" rel="noopener noreferrer" className={styles.link}>
+              GitHub
+            </a>
+          )}
+          {user.profile.githubUrl && user.profile.linkedinUrl && " · "}
+          {user.profile.linkedinUrl && (
+            <a href={user.profile.linkedinUrl} target="_blank" rel="noopener noreferrer" className={styles.link}>
+              LinkedIn
+            </a>
+          )}
+        </p>
+      )}
+
       <dl className={styles.stats}>
-        <div><dt>Toplam puan</dt><dd>{totalPoints}</dd></div>
-        <div><dt>Çözülen quiz</dt><dd>{summaries.length}</dd></div>
+        <div><dt>Toplam puan</dt><dd>{points.total}</dd></div>
+        <div><dt>Bu hafta</dt><dd>{points.weekly}</dd></div>
+        <div><dt>Çözülen quiz</dt><dd>{quizzesCompleted}</dd></div>
+        <div><dt>Yayındaki yazı</dt><dd>{posts.length}</dd></div>
       </dl>
-      <ul className={styles.list}>
-        {summaries.map((s) => (
-          <li key={s.quizId}>
-            <span>{s.quizTitle}</span>
-            <span>
-              {s.best.correct}/{s.best.total} · %{percentOf(s.best)}
-            </span>
-          </li>
-        ))}
-      </ul>
+
+      {posts.length > 0 && (
+        <ul className={styles.list}>
+          {posts.map((post) => (
+            <li key={post.id}>
+              <Link href={`/blog/${post.slug}`}>{post.title}</Link>
+              <span>
+                {post.category.name} · {formatDate(post.publishedAt)}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

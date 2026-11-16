@@ -1,29 +1,33 @@
-// ---- /quiz/[id] sayfası: seçilen quizi çözdürür ----
+// ---- /quiz/[id] sayfası: quiz bilgisi + çözme akışı ----
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import QuizRunner from "@/components/quiz/QuizRunner";
-import { getQuizById, quizList } from "@/mocks/quizzes"; // MOCK: backend gelince API'den
+import { ApiError, serverApi } from "@/lib/api";
+import type { QuizDetail } from "@/types";
 
-// Next.js 15'te params bir Promise'tir
+export const dynamic = "force-dynamic";
+
 type Props = { params: Promise<{ id: string }> };
 
-// Bilinen quiz sayfalarını önceden üret
-export function generateStaticParams() {
-  return quizList.map((quiz) => ({ id: quiz.id }));
+async function getQuiz(id: string): Promise<QuizDetail | null> {
+  try {
+    const { quiz } = await serverApi<{ quiz: QuizDetail }>(`/quizzes/${encodeURIComponent(id)}`);
+    return quiz;
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 404) return null;
+    throw error;
+  }
 }
 
-// Sekme başlığı: quizin adı
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
-  const quiz = getQuizById(id);
+  const quiz = await getQuiz(id).catch(() => null);
   return { title: quiz ? quiz.title : "Quiz bulunamadı" };
 }
 
 export default async function QuizPage({ params }: Props) {
   const { id } = await params;
-  const quiz = getQuizById(id);
-
-  // Böyle bir quiz yoksa 404 sayfası
+  const quiz = await getQuiz(id);
   if (!quiz) notFound();
 
   return (

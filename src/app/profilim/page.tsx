@@ -2,40 +2,33 @@
 // ============================================================
 //  /profilim: Giriş yapan üyenin profil + ayar sayfası (giriş gerekli)
 //  Bölümler:
-//   1) Üst kart      : ad soyad, kullanıcı adı, HSD topluluğu
-//   2) Hesap bilgileri: ad, soyad, HSD topluluğu düzenlenir (e-posta değiştirilemez)
+//   1) Üst kart       : ad soyad, kullanıcı adı, HSD topluluğu
+//   2) Hesap bilgileri: ad, soyad, HSD topluluğu, biyografi, GitHub/LinkedIn
 //   3) Şifre değiştir : mevcut şifre + yeni şifre
-//   4) Çözdüğüm quizler: sıralama seçeneğiyle (en yeni / en yüksek puan / A-Z)
+//   4) Çözdüğüm quizler
 // ============================================================
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import RequireAuth from "@/components/auth/RequireAuth";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
+import Select from "@/components/ui/Select";
 import { changePassword, updateProfile } from "@/lib/auth";
-import { getUserResults, percentOf, summarizeByQuiz, updateResultsIdentity } from "@/lib/results";
+import { formatDate } from "@/lib/format";
 import {
+  PASSWORD_HINT,
   passwordChangeSchema,
   profileSchema,
   type PasswordChangeValues,
   type ProfileValues,
 } from "@/lib/schemas";
-import type { Session } from "@/types";
+import { useApi } from "@/lib/useApi";
+import type { Community, Dashboard, Session } from "@/types";
 import styles from "./page.module.css";
 
-// Tarihi "2 Kasım 2026" biçiminde göster
-const formatDate = (iso: string) =>
-  new Date(iso).toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric" });
-
-// "Ali Can Yılmaz" -> ad: "Ali Can", soyad: "Yılmaz" (son kelime soyad kabul edilir)
-function splitName(full: string): { first: string; last: string } {
-  const parts = full.trim().split(/\s+/).filter(Boolean);
-  if (parts.length < 2) return { first: parts[0] ?? "", last: "" };
-  const last = parts.pop() as string;
-  return { first: parts.join(" "), last };
-}
+type Message = { type: "ok" | "error"; text: string } | null;
 
 export default function ProfilePage() {
   return (
@@ -48,35 +41,44 @@ export default function ProfilePage() {
 }
 
 function ProfileContent({ session }: { session: Session }) {
+  const dashboard = useApi<Dashboard>("/users/me/dashboard");
+
   return (
     <>
-      {/* 1) Üst kart */}
       <header className={styles.head}>
-        {/* Baş harfler: avatar yerine */}
         <div className={styles.avatar} aria-hidden>
-          {session.name.trim().charAt(0).toLocaleUpperCase("tr-TR")}
+          {session.firstName.trim().charAt(0).toLocaleUpperCase("tr-TR")}
         </div>
         <div>
           <h1>{session.name}</h1>
-          <p className={styles.muted}>@{session.username}</p>
-          <span className={styles.badge}>HSD: {session.community}</span>
+          <p className={styles.muted}>
+            @{session.username} · <Link href={`/profil/${session.username}`}>Herkese açık profilim</Link>
+          </p>
+          {session.community && <span className={styles.badge}>HSD: {session.community.name}</span>}
         </div>
       </header>
 
       <div className={styles.grid}>
-        <ProfileForm session={session} />
-        <PasswordForm session={session} />
+        {dashboard.data ? (
+          <ProfileForm session={session} dashboard={dashboard.data} />
+        ) : (
+          <section className={styles.card}>
+            <p role="status">{dashboard.error ?? "Yükleniyor…"}</p>
+          </section>
+        )}
+        <PasswordForm />
       </div>
 
-      <SolvedQuizzes session={session} />
+      <SolvedQuizzes dashboard={dashboard.data} />
     </>
   );
 }
 
 // ---------- 2) Hesap bilgileri formu ----------
-function ProfileForm({ session }: { session: Session }) {
-  const [message, setMessage] = useState<{ type: "ok" | "error"; text: string } | null>(null);
-  const initial = splitName(session.name);
+function ProfileForm({ session, dashboard }: { session: Session; dashboard: Dashboard }) {
+  const [message, setMessage] = useState<Message>(null);
+  const communities = useApi<{ communities: Community[] }>("/communities");
+  const profile = dashboard.user.profile;
 
   const {
     register,
@@ -85,26 +87,22 @@ function ProfileForm({ session }: { session: Session }) {
   } = useForm<ProfileValues>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
-      firstName: initial.first,
-      lastName: initial.last,
-      // "Belirtilmedi" kayıtta otomatik yazılan değer; kutuda boş gösterilir
-      community: session.community === "Belirtilmedi" ? "" : session.community,
+      firstName: session.firstName,
+      lastName: session.lastName,
+      communityId: session.communityId,
+      bio: profile?.bio ?? "",
+      githubUrl: profile?.githubUrl ?? "",
+      linkedinUrl: profile?.linkedinUrl ?? "",
     },
   });
 
-  const onSubmit: SubmitHandler<ProfileValues> = (values) => {
-    const fullName = `${values.firstName.trim()} ${values.lastName.trim()}`;
-    const community = values.community?.trim() || "Belirtilmedi";
-
-    const result = updateProfile(session.email, { name: fullName, community });
-    if (!result.ok) {
-      setMessage({ type: "error", text: result.message });
-      return;
-    }
-    // Eski quiz sonuçlarında da yeni ad görünsün (sıralama tablosu için)
-    updateResultsIdentity(session.username, fullName, community);
-    setMessage({ type: "ok", text: "Bilgilerin güncellendi." });
+  const onSubmit: SubmitHandler<ProfileValues> = async (values) => {
+    setMessage(null);
+    const result = await updateProfile(values);
+    setMessage(result.ok ? { type: "ok", text: "Bilgilerin güncellendi." } : { type: "error", text: result.message });
   };
+
+  const options = (communities.data?.communities ?? []).map((c) => ({ value: c.id, label: `${c.name} (${c.university})` }));
 
   return (
     <section className={styles.card} aria-labelledby="bilgi-baslik">
@@ -112,16 +110,19 @@ function ProfileForm({ session }: { session: Session }) {
       <form onSubmit={handleSubmit(onSubmit)} noValidate>
         <Input id="p-ad" label="Ad" type="text" autoComplete="given-name" error={errors.firstName?.message} {...register("firstName")} />
         <Input id="p-soyad" label="Soyad" type="text" autoComplete="family-name" error={errors.lastName?.message} {...register("lastName")} />
-        <Input
-          id="p-topluluk"
-          label="HSD topluluğu"
-          type="text"
-          placeholder="Örn. İstanbul Gelişim Üniversitesi HSD"
-          hint="Sıralama tablosunda adının yanında görünür."
-          error={errors.community?.message}
-          {...register("community")}
-        />
-        {/* E-posta giriş bilgisi olduğu için değiştirilemez (salt okunur) */}
+        {communities.data && (
+          <Select
+            id="p-topluluk"
+            label="HSD topluluğu"
+            options={options}
+            hint="Sıralama tablosunda adının yanında görünür."
+            error={errors.communityId?.message}
+            {...register("communityId")}
+          />
+        )}
+        <Input id="p-bio" label="Kısa biyografi (isteğe bağlı)" type="text" maxLength={500} error={errors.bio?.message} {...register("bio")} />
+        <Input id="p-github" label="GitHub (isteğe bağlı)" type="url" placeholder="https://github.com/kullaniciadi" error={errors.githubUrl?.message} {...register("githubUrl")} />
+        <Input id="p-linkedin" label="LinkedIn (isteğe bağlı)" type="url" placeholder="https://linkedin.com/in/kullaniciadi" error={errors.linkedinUrl?.message} {...register("linkedinUrl")} />
         <Input id="p-eposta" label="E-posta" type="email" value={session.email} readOnly hint="E-posta adresi değiştirilemez." />
 
         {message && (
@@ -130,7 +131,7 @@ function ProfileForm({ session }: { session: Session }) {
           </p>
         )}
         <button type="submit" className={styles.save} disabled={isSubmitting}>
-          Bilgileri kaydet
+          {isSubmitting ? "Kaydediliyor…" : "Bilgileri kaydet"}
         </button>
       </form>
     </section>
@@ -138,8 +139,8 @@ function ProfileForm({ session }: { session: Session }) {
 }
 
 // ---------- 3) Şifre değiştirme formu ----------
-function PasswordForm({ session }: { session: Session }) {
-  const [message, setMessage] = useState<{ type: "ok" | "error"; text: string } | null>(null);
+function PasswordForm() {
+  const [message, setMessage] = useState<Message>(null);
 
   const {
     register,
@@ -148,20 +149,20 @@ function PasswordForm({ session }: { session: Session }) {
     formState: { errors, isSubmitting },
   } = useForm<PasswordChangeValues>({ resolver: zodResolver(passwordChangeSchema) });
 
-  const onSubmit: SubmitHandler<PasswordChangeValues> = (values) => {
-    const result = changePassword(session.email, values.current, values.password);
+  const onSubmit: SubmitHandler<PasswordChangeValues> = async (values) => {
+    setMessage(null);
+    const result = await changePassword(values.current, values.password);
     if (!result.ok) {
       setMessage({ type: "error", text: result.message });
       return;
     }
-    reset(); // şifre kutularını temizle
+    reset();
     setMessage({ type: "ok", text: "Şifren değiştirildi." });
   };
 
   return (
     <section className={styles.card} aria-labelledby="sifre-baslik">
       <h2 id="sifre-baslik">Şifre değiştir</h2>
-      {/* Güvenlik: mevcut şifre asla ekranda gösterilmez */}
       <p className={styles.muted}>Güvenliğin için şifren burada gösterilmez; yalnızca yenisini belirleyebilirsin.</p>
       <form onSubmit={handleSubmit(onSubmit)} noValidate>
         <Input id="p-mevcut" label="Mevcut şifre" type="password" autoComplete="current-password" error={errors.current?.message} {...register("current")} />
@@ -170,7 +171,7 @@ function PasswordForm({ session }: { session: Session }) {
           label="Yeni şifre"
           type="password"
           autoComplete="new-password"
-          hint="En az 8 karakter; büyük harf, küçük harf ve özel karakter (@ . , ! ? # $ % & *) içermeli."
+          hint={PASSWORD_HINT}
           error={errors.password?.message}
           {...register("password")}
         />
@@ -182,64 +183,37 @@ function PasswordForm({ session }: { session: Session }) {
           </p>
         )}
         <button type="submit" className={styles.save} disabled={isSubmitting}>
-          Şifreyi değiştir
+          {isSubmitting ? "Değiştiriliyor…" : "Şifreyi değiştir"}
         </button>
       </form>
     </section>
   );
 }
 
-// ---------- 4) Çözdüğüm quizler (sıralanabilir liste) ----------
-type SortKey = "recent" | "points" | "name";
-
-function SolvedQuizzes({ session }: { session: Session }) {
-  const [sortKey, setSortKey] = useState<SortKey>("recent");
-
-  // Bu üyenin quiz bazında özetleri (her quizin en iyi sonucu, deneme sayısı...)
-  const summaries = useMemo(() => summarizeByQuiz(getUserResults(session.username)), [session.username]);
-
-  // Seçilen sıralamaya göre listeyi düzenle
-  const sorted = useMemo(() => {
-    const list = [...summaries];
-    if (sortKey === "recent") list.sort((a, b) => (a.lastDate < b.lastDate ? 1 : -1)); // en yeni üstte
-    if (sortKey === "points") list.sort((a, b) => b.best.points - a.best.points); // en yüksek puan üstte
-    if (sortKey === "name") list.sort((a, b) => a.quizTitle.localeCompare(b.quizTitle, "tr")); // A-Z
-    return list;
-  }, [summaries, sortKey]);
-
+// ---------- 4) Çözdüğüm quizler ----------
+function SolvedQuizzes({ dashboard }: { dashboard: Dashboard | null }) {
+  const quizzes = dashboard?.quizzes.recent ?? [];
   return (
     <section className={`${styles.card} ${styles.wide}`} aria-labelledby="quizler-baslik">
       <div className={styles.listHead}>
-        <h2 id="quizler-baslik">Çözdüğüm quizler ({summaries.length})</h2>
-        {summaries.length > 1 && (
-          <label className={styles.sort}>
-            Sırala:{" "}
-            <select value={sortKey} onChange={(e) => setSortKey(e.target.value as SortKey)}>
-              <option value="recent">En yeni</option>
-              <option value="points">En yüksek puan</option>
-              <option value="name">Quiz adı (A-Z)</option>
-            </select>
-          </label>
-        )}
+        <h2 id="quizler-baslik">Son çözdüğüm quizler ({dashboard?.quizzes.completed ?? 0})</h2>
       </div>
 
-      {sorted.length === 0 ? (
+      {quizzes.length === 0 ? (
         <div className={styles.empty}>
           <p>Henüz quiz çözmedin.</p>
           <Button href="/quiz">Quizlere git</Button>
         </div>
       ) : (
         <ul className={styles.quizList}>
-          {sorted.map((s) => (
-            <li key={s.quizId}>
-              <Link href={`/quiz/${s.quizId}`} className={styles.quizTitle}>
-                {s.quizTitle}
+          {quizzes.map((attempt) => (
+            <li key={attempt.quiz.id}>
+              <Link href={`/quiz/${attempt.quiz.id}`} className={styles.quizTitle}>
+                {attempt.quiz.title}
               </Link>
-              <span>
-                {s.best.correct}/{s.best.total} · %{percentOf(s.best)} · {s.best.points} puan
-              </span>
+              <span>{attempt.score} puan</span>
               <span className={styles.muted}>
-                {s.attempts} deneme · {formatDate(s.lastDate)}
+                {attempt.quiz.category.name} · {formatDate(attempt.finishedAt)}
               </span>
             </li>
           ))}

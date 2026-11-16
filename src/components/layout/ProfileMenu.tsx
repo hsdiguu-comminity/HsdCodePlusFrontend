@@ -1,20 +1,19 @@
 "use client";
 // ---- Sağ üstteki "Profilim" menüsü (sadece giriş yapılmışsa görünür) ----
-// Tıklayınca açılır: ad soyad, e-posta, HSD topluluğu + Profil / Panel / Çıkış bağlantıları.
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChevronDown, LayoutDashboard, LogOut, Settings, User } from "lucide-react";
+import { ChevronDown, LayoutDashboard, LogOut, PenLine, Settings, ShieldCheck, User } from "lucide-react";
 import { logout } from "@/lib/auth";
 import type { Session } from "@/types";
 import styles from "./ProfileMenu.module.css";
 
 export default function ProfileMenu({ session }: { session: Session }) {
-  const [open, setOpen] = useState(false); // menü açık mı?
-  const wrapRef = useRef<HTMLDivElement>(null); // dışarı tıklamayı anlamak için
+  const [open, setOpen] = useState(false);
+  const wrapRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
-  // Menü açıkken: menünün dışına tıklanırsa ya da Esc tuşuna basılırsa kapat
+  // Menü açıkken: dışarı tıklanırsa ya da Esc'ye basılırsa kapat
   useEffect(() => {
     if (!open) return;
     const onClick = (e: MouseEvent) => {
@@ -31,16 +30,17 @@ export default function ProfileMenu({ session }: { session: Session }) {
     };
   }, [open]);
 
-  // Çıkış: oturumu sil, ana sayfaya dön
-  function handleLogout() {
+  async function handleLogout() {
     setOpen(false);
-    logout();
+    await logout();
     router.push("/");
+    router.refresh();
   }
+
+  const close = () => setOpen(false);
 
   return (
     <div className={styles.wrap} ref={wrapRef}>
-      {/* Menüyü açan düğme */}
       <button
         type="button"
         className={styles.trigger}
@@ -55,19 +55,26 @@ export default function ProfileMenu({ session }: { session: Session }) {
 
       {open && (
         <div className={styles.panel} role="menu">
-          {/* Üye bilgileri: ad soyad, e-posta ve HSD üyeliği (kayıtta yazılan topluluk) */}
           <div className={styles.info}>
             <strong>{session.name}</strong>
             <span className={styles.email}>{session.email}</span>
-            <span className={styles.badge}>HSD: {session.community}</span>
+            {session.community && <span className={styles.badge}>HSD: {session.community.name}</span>}
           </div>
 
-          <Link href="/profilim" role="menuitem" className={styles.item} onClick={() => setOpen(false)}>
+          <Link href="/profilim" role="menuitem" className={styles.item} onClick={close}>
             <Settings size={16} aria-hidden /> Profilim ve ayarlar
           </Link>
-          <Link href="/dashboard" role="menuitem" className={styles.item} onClick={() => setOpen(false)}>
+          <Link href="/dashboard" role="menuitem" className={styles.item} onClick={close}>
             <LayoutDashboard size={16} aria-hidden /> Panelim
           </Link>
+          <Link href="/blog/yeni" role="menuitem" className={styles.item} onClick={close}>
+            <PenLine size={16} aria-hidden /> Yazı yaz
+          </Link>
+          {session.isAdmin && (
+            <Link href="/admin" role="menuitem" className={styles.item} onClick={close}>
+              <ShieldCheck size={16} aria-hidden /> Yönetim paneli
+            </Link>
+          )}
           <button type="button" role="menuitem" className={`${styles.item} ${styles.danger}`} onClick={handleLogout}>
             <LogOut size={16} aria-hidden /> Çıkış yap
           </button>

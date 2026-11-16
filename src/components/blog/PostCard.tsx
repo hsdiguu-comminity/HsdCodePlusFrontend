@@ -3,14 +3,16 @@ import Link from "next/link";
 import { Clock } from "lucide-react";
 import Card from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
-import type { Post } from "@/types";
+import { fullName } from "@/lib/format";
+import type { PostSummary } from "@/types";
 import styles from "./PostCard.module.css";
 
-export default function PostCard({ post }: { post: Post }) {
-  const date = new Date(post.date).toLocaleDateString("tr-TR", { day: "numeric", month: "long" });
+export default function PostCard({ post }: { post: PostSummary }) {
+  const iso = post.publishedAt ?? post.createdAt;
+  const date = new Date(iso).toLocaleDateString("tr-TR", { day: "numeric", month: "long" });
   return (
     <Card>
-      <Badge>{post.category}</Badge>
+      <Badge>{post.category.name}</Badge>
       <h3 className={styles.title}>
         <Link href={`/blog/${post.slug}`} className={styles.link}>
           {post.title}
@@ -18,9 +20,9 @@ export default function PostCard({ post }: { post: Post }) {
       </h3>
       <p className={styles.excerpt}>{post.excerpt}</p>
       <div className={styles.meta}>
-        <span>{post.author.name}</span>
+        <Link href={`/profil/${post.author.username}`}>{fullName(post.author)}</Link>
         <span className={styles.read}>
-          <Clock size={14} aria-hidden /> {post.readMinutes} dk okuma · <time dateTime={post.date}>{date}</time>
+          <Clock size={14} aria-hidden /> {post.readMinutes} dk okuma · <time dateTime={iso}>{date}</time>
         </span>
       </div>
     </Card>

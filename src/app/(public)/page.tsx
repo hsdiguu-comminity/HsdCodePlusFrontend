@@ -5,15 +5,29 @@ import Button from "@/components/ui/Button";
 import PostCard from "@/components/blog/PostCard";
 import QuizCard from "@/components/quiz/QuizCard";
 import WeeklyTop from "@/components/leaderboard/WeeklyTop";
-import home from "@/mocks/home.json"; // MOCK veri: backend gelince API'den çekilecek
-import type { Post, Quiz, RankEntry } from "@/types";
+import { serverApi } from "@/lib/api";
+import type { Paginated, PostSummary, QuizSummary, RankEntry } from "@/types";
 import styles from "./page.module.css";
 
-const posts = home.posts as Post[];
-const quizzes = home.quizzes as Quiz[];
-const sampleTop = home.weeklyTop as RankEntry[];
+// Her istekte güncel veri (build sırasında backend'e bağlanmaya çalışmaz)
+export const dynamic = "force-dynamic";
 
-export default function HomePage() {
+// Bir bölümün verisi gelmezse sayfa çökmesin, o bölüm boş görünsün
+async function safe<T>(promise: Promise<T>, fallback: T): Promise<T> {
+  try {
+    return await promise;
+  } catch {
+    return fallback;
+  }
+}
+
+export default async function HomePage() {
+  const [posts, quizzes, weeklyTop] = await Promise.all([
+    safe(serverApi<Paginated<PostSummary>>("/posts?pageSize=3").then((r) => r.items), []),
+    safe(serverApi<{ quizzes: QuizSummary[] }>("/quizzes").then((r) => r.quizzes.slice(0, 3)), []),
+    safe(serverApi<{ items: RankEntry[] }>("/leaderboard?period=weekly&limit=5").then((r) => r.items), []),
+  ]);
+
   return (
     <main id="anasayfa">
       {/* ---------- HERO ---------- */}
@@ -42,18 +56,22 @@ export default function HomePage() {
       <section className={`${styles.section} ${styles.alt}`} aria-labelledby="posts-title">
         <div className="container">
           <header className={styles.sectionHead}>
-            <h2 id="posts-title">Öne çıkan yazılar</h2>
+            <h2 id="posts-title">Son yazılar</h2>
             <Link href="/blog" className={styles.more}>
               Tüm yazılar <ArrowRight size={15} aria-hidden />
             </Link>
           </header>
-          <ul className={styles.grid}>
-            {posts.map((p) => (
-              <li key={p.id}>
-                <PostCard post={p} />
-              </li>
-            ))}
-          </ul>
+          {posts.length === 0 ? (
+            <p>Henüz yayınlanmış yazı yok. <Link href="/blog/yeni">İlk yazıyı sen yaz!</Link></p>
+          ) : (
+            <ul className={styles.grid}>
+              {posts.map((p) => (
+                <li key={p.id}>
+                  <PostCard post={p} />
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       </section>
 
@@ -61,22 +79,26 @@ export default function HomePage() {
       <section className={styles.section} aria-labelledby="quiz-title">
         <div className="container">
           <header className={styles.sectionHead}>
-            <h2 id="quiz-title">Aktif quizler</h2>
+            <h2 id="quiz-title">Quizler</h2>
             <Link href="/quiz" className={styles.more}>
               Tüm quizler <ArrowRight size={15} aria-hidden />
             </Link>
           </header>
-          <ul className={styles.grid}>
-            {quizzes.map((q) => (
-              <li key={q.id}>
-                <QuizCard quiz={q} />
-              </li>
-            ))}
-          </ul>
+          {quizzes.length === 0 ? (
+            <p>Şu an yayında quiz yok. Yakında yenileri eklenecek.</p>
+          ) : (
+            <ul className={styles.grid}>
+              {quizzes.map((q) => (
+                <li key={q.id}>
+                  <QuizCard quiz={q} />
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       </section>
 
-      {/* ---------- HAFTANIN İLK 5'İ (gerçek sonuç varsa onu, yoksa örnek veriyi gösterir) ---------- */}
+      {/* ---------- HAFTANIN İLK 5'İ ---------- */}
       <section className={`${styles.section} ${styles.alt}`} aria-labelledby="top-title">
         <div className="container">
           <header className={styles.sectionHead}>
@@ -85,11 +107,11 @@ export default function HomePage() {
               Tüm sıralama <ArrowRight size={15} aria-hidden />
             </Link>
           </header>
-          <WeeklyTop sample={sampleTop} />
+          <WeeklyTop entries={weeklyTop} />
         </div>
       </section>
 
-      {/* ---------- KATILIM ÇAĞRISI: "Hemen üye ol" -> /kayit ---------- */}
+      {/* ---------- KATILIM ÇAĞRISI ---------- */}
       <section className={styles.section} aria-labelledby="cta-title">
         <div className="container">
           <div className={styles.cta}>

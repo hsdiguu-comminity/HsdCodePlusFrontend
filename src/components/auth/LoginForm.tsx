@@ -14,12 +14,10 @@ export default function LoginForm() {
   const router = useRouter();
   const params = useSearchParams();
 
-  // ?next=/quiz/ai gibi: girişten sonra gidilecek sayfa
+  // ?next=/quiz/abc gibi: girişten sonra gidilecek sayfa
   const rawNext = params.get("next");
   const next = safeNext(rawNext);
-  // Kayıttan yeni geldiyse küçük bilgi mesajı göster
   const justRegistered = params.get("kayit") === "basarili";
-  // Şifre sıfırlama başarılıysa (/giris?sifre=yenilendi) bilgi mesajı göster
   const passwordReset = params.get("sifre") === "yenilendi";
 
   const [formError, setFormError] = useState("");
@@ -30,14 +28,16 @@ export default function LoginForm() {
     formState: { errors, isSubmitting },
   } = useForm<LoginValues>({ resolver: zodResolver(loginSchema) });
 
-  // Form geçerliyse giriş denenir
-  const onSubmit: SubmitHandler<LoginValues> = (values) => {
-    const result = loginUser(values.email, values.password);
+  const onSubmit: SubmitHandler<LoginValues> = async (values) => {
+    setFormError("");
+    const result = await loginUser(values.email, values.password);
     if (!result.ok) {
-      setFormError(result.message); // "E-posta veya şifre yanlış." vb.
+      // "E-posta veya şifre hatalı", "Üyeliğiniz henüz onaylanmadı" vb. backend'den gelir
+      setFormError(result.message);
       return;
     }
     router.push(next);
+    router.refresh();
   };
 
   return (
@@ -45,7 +45,7 @@ export default function LoginForm() {
       <form onSubmit={handleSubmit(onSubmit)} noValidate className={styles.form}>
         {justRegistered && (
           <p className={styles.success} role="status">
-            Hesabın oluşturuldu. Şimdi giriş yapabilirsin.
+            Kaydın alındı! Hesabın yönetici onayından sonra aktif olacak; onaylanınca e-posta ile haber vereceğiz.
           </p>
         )}
 
@@ -64,7 +64,6 @@ export default function LoginForm() {
           error={errors.password?.message}
           {...register("password")}
         />
-        {/* Şifremi unuttum: e-postaya sıfırlama bağlantısı gönderilen sayfaya gider */}
         <Link href="/sifremi-unuttum" className={styles.forgot}>
           Şifremi unuttum
         </Link>
@@ -76,7 +75,7 @@ export default function LoginForm() {
         )}
 
         <button type="submit" className={styles.submit} disabled={isSubmitting}>
-          Giriş yap
+          {isSubmitting ? "Giriş yapılıyor…" : "Giriş yap"}
         </button>
       </form>
 

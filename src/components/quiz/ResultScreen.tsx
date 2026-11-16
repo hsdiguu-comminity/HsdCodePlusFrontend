@@ -1,81 +1,66 @@
 // ---- Quiz sonuç ve analiz ekranı ----
+// Doğru cevaplar ve açıklamalar sunucudan, quiz bittikten sonra gelir.
 import Link from "next/link";
-import { percentOf } from "@/lib/results";
-import type { QuizDetail, QuizResult } from "@/types";
+import { percent } from "@/lib/format";
+import type { QuizResult } from "@/types";
 import styles from "./ResultScreen.module.css";
 
-interface ResultScreenProps {
-  quiz: QuizDetail;
-  result: QuizResult; // kaydedilmiş sonuç
-  answers: (number | null)[]; // kullanıcının seçtiği şıklar (boşsa null)
-  onRetry: () => void; // "tekrar çöz" butonu
-}
+export default function ResultScreen({ result, note }: { result: QuizResult; note?: string }) {
+  const rate = percent(result.correctCount, result.questionCount);
+  const blank = result.questions.filter((q) => q.selectedOptionId === null).length;
+  const wrong = result.questionCount - result.correctCount - blank;
 
-export default function ResultScreen({ quiz, result, answers, onRetry }: ResultScreenProps) {
-  const percent = percentOf(result);
-  const blank = answers.filter((a) => a === null).length; // boş bırakılanlar (süre dolunca olabilir)
-  const wrong = result.total - result.correct - blank;
-
-  // Başarıya göre kısa değerlendirme
   const message =
-    percent >= 90
+    rate >= 90
       ? "Harika! Konuya çok iyi hâkimsin."
-      : percent >= 70
+      : rate >= 70
         ? "Çok iyi! Biraz daha pratikle ilerleyebilirsin."
-        : percent >= 50
+        : rate >= 50
           ? "Güzel bir başlangıç. Açıklamaları inceleyebilirsin."
-          : "Öğrenmeye devam et; tekrar deneyerek gelişebilirsin.";
+          : "Öğrenmeye devam et; açıklamalar konuyu pekiştirmene yardımcı olur.";
 
   return (
     <section className={styles.result} aria-labelledby="sonuc-baslik">
+      {note && <p className={styles.note}>{note}</p>}
       <h2 id="sonuc-baslik">
-        Sonucun: {result.correct} / {result.total}
+        {result.quiz.title}: {result.correctCount} / {result.questionCount}
       </h2>
       <p className={styles.message}>
-        {message} Kazandığın puan: <strong>{result.points}</strong>
+        {message} Kazandığın puan: <strong>{result.score}</strong> / {result.totalPoints}
       </p>
 
-      {/* Özet kutuları */}
       <dl className={styles.stats}>
-        <div><dt>Başarı oranı</dt><dd>%{percent}</dd></div>
-        <div><dt>Doğru</dt><dd>{result.correct}</dd></div>
+        <div><dt>Başarı oranı</dt><dd>%{rate}</dd></div>
+        <div><dt>Doğru</dt><dd>{result.correctCount}</dd></div>
         <div><dt>Yanlış</dt><dd>{wrong}</dd></div>
         <div><dt>Boş</dt><dd>{blank}</dd></div>
       </dl>
 
-      <p className={styles.note}>
-        Sıralamada her quizin <strong>en yüksek</strong> sonucun sayılır. Tekrar çözmek puanını düşürmez.
-      </p>
-
-      {/* Soru soru analiz */}
       <h3 className={styles.reviewTitle}>Cevaplarını incele</h3>
       <ol className={styles.review}>
-        {quiz.questions.map((question, i) => {
-          const given = answers[i];
-          const isCorrect = given === question.correctIndex;
+        {result.questions.map((question, i) => {
+          const given = question.options.find((o) => o.id === question.selectedOptionId);
+          const correct = question.options.find((o) => o.id === question.correctOptionId);
           return (
-            <li key={question.text} className={`${styles.item} ${isCorrect ? styles.ok : styles.bad}`}>
+            <li key={question.id} className={`${styles.item} ${question.isCorrect ? styles.ok : styles.bad}`}>
               <p className={styles.question}>
                 {i + 1}. {question.text}
               </p>
               <p>
-                Senin cevabın: {given === null ? "Boş bıraktın" : question.options[given]}{" "}
-                <span className={styles.badge}>{isCorrect ? "Doğru" : "Yanlış"}</span>
+                Senin cevabın: {given ? given.text : "Boş bıraktın"}{" "}
+                <span className={styles.badge}>{question.isCorrect ? "Doğru" : "Yanlış"}</span>
               </p>
-              {!isCorrect && <p>Doğru cevap: {question.options[question.correctIndex]}</p>}
-              <p className={styles.explain}>{question.explanation}</p>
+              {!question.isCorrect && correct && <p>Doğru cevap: {correct.text}</p>}
+              {question.explanation && <p className={styles.explain}>{question.explanation}</p>}
             </li>
           );
         })}
       </ol>
 
-      {/* Yönlendirmeler */}
       <div className={styles.actions}>
-        <button type="button" className={styles.primary} onClick={onRetry}>
-          Quizi yeniden çöz
-        </button>
+        <Link href="/quiz" className={styles.primary}>Diğer quizler</Link>
         <Link href="/siralama" className={styles.secondary}>Sıralamayı gör</Link>
-        <Link href="/dashboard" className={styles.secondary}>Analizlerim</Link>
+        <Link href="/dashboard" className={styles.secondary}>Panelim</Link>
       </div>
     </section>
   );
