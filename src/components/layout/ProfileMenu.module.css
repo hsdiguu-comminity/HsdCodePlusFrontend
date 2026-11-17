@@ -1,0 +1,43 @@
+/* Profilim açılır menüsü (Navbar'ın sağında) */
+.wrap { position: relative; }
+
+.trigger {
+  display: inline-flex; align-items: center; gap: var(--space-2);
+  height: 40px; padding: 0 var(--space-3); cursor: pointer;
+  font-weight: 600; font-size: 0.88rem; color: var(--color-text);
+  background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-sm);
+  transition: border-color 0.25s ease;
+}
+.trigger:hover { border-color: var(--color-secondary); }
+.rotated { transform: rotate(180deg); }
+/* çok dar ekranda sadece ikon kalsın */
+.label { display: none; }
+
+/* açılan kutu: butonun altında, sağa hizalı */
+.panel {
+  position: absolute; right: 0; top: calc(100% + 8px); z-index: 1100;
+  width: min(300px, 86vw); padding: var(--space-2);
+  background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+}
+.info {
+  display: flex; flex-direction: column; gap: 2px; align-items: flex-start;
+  padding: var(--space-3); margin-bottom: var(--space-2); border-bottom: 1px solid var(--color-border);
+}
+.email { color: var(--color-muted); font-size: 0.85rem; word-break: break-all; }
+.badge {
+  margin-top: var(--space-2); padding: 3px 10px; font-size: 0.78rem; font-weight: 600;
+  color: var(--color-accent-text); border: 1px solid var(--color-border); border-radius: 999px;
+}
+
+.item {
+  display: flex; align-items: center; gap: var(--space-2); width: 100%;
+  padding: 10px var(--space-3); font: inherit; font-size: 0.9rem; text-align: left; cursor: pointer;
+  color: var(--color-text); background: transparent; border: 0; border-radius: var(--radius-sm);
+}
+.item:hover { background: var(--color-bg-alt); }
+.danger:hover { color: var(--color-error); }
+
+@media (min-width: 480px) {
+  .label { display: inline; }
+}

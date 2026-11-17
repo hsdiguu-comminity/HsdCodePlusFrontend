@@ -1,0 +1,9 @@
+/* Giriş / kayıt sayfalarının ortak kutusu */
+.page { display: flex; justify-content: center; padding: var(--space-12) 0 64px; }
+.card {
+  width: min(440px, 100%); padding: var(--space-8) var(--space-6);
+  background: var(--color-surface); border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+.card h1 { font-size: 1.7rem; letter-spacing: -0.5px; margin-bottom: var(--space-2); }
+.lead { color: var(--color-muted); margin-bottom: var(--space-6); font-size: 0.92rem; }

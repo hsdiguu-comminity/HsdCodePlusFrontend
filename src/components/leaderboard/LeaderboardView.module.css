@@ -1,0 +1,5 @@
+/* Yükleniyor ve boş durum kutuları */
+.state { padding: var(--space-8) 0; text-align: center; color: var(--color-muted); }
+.empty { display: flex; flex-direction: column; align-items: center; gap: var(--space-3); padding: var(--space-12) var(--space-6); text-align: center; background: var(--color-surface); border: 1px dashed var(--color-border); border-radius: var(--radius-md); }
+.empty p { color: var(--color-muted); }
+.info { margin-top: var(--space-4); color: var(--color-muted); font-size: 0.8rem; }
