@@ -1,0 +1,4 @@
+.title { font-size: 1.1rem; }
+.link::after { content: ""; position: absolute; inset: 0; }
+.stats { display: flex; flex-wrap: wrap; gap: var(--space-4); margin-top: auto; color: var(--color-muted); font-size: 0.85rem; }
+.stats li { display: inline-flex; align-items: center; gap: 6px; }

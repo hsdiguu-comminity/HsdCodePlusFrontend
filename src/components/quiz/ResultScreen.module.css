@@ -1,0 +1,37 @@
+/* Sonuç ekranı */
+.result h2 { font-size: clamp(1.5rem, 4vw, 2rem); letter-spacing: -0.5px; }
+.message { margin: var(--space-2) 0 var(--space-6); color: var(--color-muted); }
+
+/* Özet kutuları: mobilde 2, tablette 4 sütun */
+.stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-3); margin-bottom: var(--space-6); }
+.stats div { padding: var(--space-3) var(--space-4); background: var(--color-bg-alt); border: 1px solid var(--color-border); border-radius: 12px; }
+.stats dt { color: var(--color-muted); font-size: 0.8rem; }
+.stats dd { font-size: 1.6rem; font-weight: 800; }
+
+.note { padding: 12px 16px; color: var(--color-muted); font-size: 0.88rem; background: var(--color-bg-alt); border-left: 3px solid var(--color-primary); border-radius: 0 10px 10px 0; }
+
+/* Soru soru inceleme */
+.reviewTitle { margin: var(--space-8) 0 var(--space-3); font-size: 1.2rem; }
+.review { display: flex; flex-direction: column; gap: var(--space-3); }
+.item { padding: var(--space-4); border: 1px solid var(--color-border); border-radius: 12px; font-size: 0.9rem; }
+.ok { border-left: 4px solid var(--color-success); }
+.bad { border-left: 4px solid var(--color-error); }
+.question { font-weight: 700; margin-bottom: var(--space-2); }
+.badge { margin-left: 6px; font-size: 0.75rem; font-weight: 700; }
+.ok .badge { color: var(--color-success); }
+.bad .badge { color: var(--color-error); }
+.explain { margin-top: var(--space-2); color: var(--color-muted); }
+
+/* Alt butonlar */
+.actions { display: flex; flex-wrap: wrap; gap: var(--space-3); margin-top: var(--space-8); }
+.primary, .secondary {
+  padding: 12px 18px; font: inherit; font-weight: 600; font-size: 0.88rem; cursor: pointer;
+  border-radius: var(--radius-sm); border: 1px solid transparent;
+}
+.primary { color: #fff; background: var(--gradient-button); }
+.secondary { color: var(--color-text); background: transparent; border-color: var(--color-border); }
+.secondary:hover { border-color: var(--color-secondary); }
+
+@media (min-width: 768px) {
+  .stats { grid-template-columns: repeat(4, 1fr); }
+}

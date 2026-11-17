@@ -1,0 +1,3 @@
+/* Sayaç: rakamlar eşit genişlikte, son 30 saniyede kırmızı */
+.timer { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.low { color: var(--color-error); }

@@ -1,0 +1,35 @@
+/* Giriş ve kayıt formları için ortak stiller */
+.form { display: flex; flex-direction: column; }
+
+/* Gönder butonu (ana sayfadaki primary buton ile aynı görünüm) */
+.submit {
+  width: 100%; padding: 12px; margin-top: var(--space-2);
+  font-weight: 600; font-size: 1rem; color: #fff; cursor: pointer;
+  background: var(--gradient-button); border: 0; border-radius: var(--radius-sm);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.submit:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(99, 102, 241, 0.4); }
+.submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+/* Form genelindeki hata ve başarı mesajları */
+.formError { color: var(--color-error); margin-bottom: var(--space-3); font-size: 0.9rem; }
+.success {
+  color: var(--color-success); margin-bottom: var(--space-4); font-size: 0.9rem;
+  padding: var(--space-3); border: 1px solid var(--color-success); border-radius: var(--radius-sm);
+}
+
+/* Formun altındaki "Hesabın yok mu?" satırı */
+.switch { margin-top: var(--space-6); text-align: center; color: var(--color-muted); font-size: 0.9rem; }
+.switch a { color: var(--color-secondary); font-weight: 600; }
+.switch a:hover { text-decoration: underline; }
+
+/* Bilgi kutusu (şifre sıfırlama ekranlarında kullanılır) */
+.hintBox {
+  margin-bottom: var(--space-4); padding: var(--space-3); font-size: 0.88rem; color: var(--color-muted);
+  background: var(--color-bg-alt); border: 1px solid var(--color-border); border-radius: var(--radius-sm);
+}
+.hintBox a { color: var(--color-secondary); font-weight: 600; }
+
+/* "Şifremi unuttum" bağlantısı (şifre alanının altında, sağda) */
+.forgot { align-self: flex-end; margin: calc(var(--space-2) * -1) 0 var(--space-3); font-size: 0.85rem; color: var(--color-secondary); font-weight: 600; }
+.forgot:hover { text-decoration: underline; }

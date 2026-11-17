@@ -1,0 +1,42 @@
+/* Blog yazısı içeriği (Markdown) */
+.markdown {
+  width: 100%;
+  font-size: 1.05rem;
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+}
+.markdown > * + * { margin-top: var(--space-4); }
+.markdown h1, .markdown h2, .markdown h3, .markdown h4 { line-height: 1.3; margin-top: var(--space-8); }
+.markdown h1 { font-size: 1.8rem; }
+.markdown h2 { font-size: 1.5rem; }
+.markdown h3 { font-size: 1.25rem; }
+.markdown a { color: var(--color-accent-text); text-decoration: underline; }
+.markdown ul, .markdown ol { padding-left: var(--space-6); }
+.markdown li + li { margin-top: var(--space-1); }
+.markdown blockquote {
+  padding: var(--space-2) var(--space-4);
+  color: var(--color-muted);
+  border-left: 3px solid var(--color-primary);
+  background: var(--color-surface);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+.markdown code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  padding: 2px 6px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+}
+.markdown pre {
+  padding: var(--space-4);
+  overflow-x: auto;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+.markdown pre code { padding: 0; border: 0; background: none; }
+.markdown img { max-width: 100%; height: auto; border-radius: var(--radius-md); }
+.markdown table { width: 100%; border-collapse: collapse; display: block; overflow-x: auto; }
+.markdown th, .markdown td { padding: var(--space-2) var(--space-3); border: 1px solid var(--color-border); text-align: left; }
+.markdown hr { border: 0; border-top: 1px solid var(--color-border); }
